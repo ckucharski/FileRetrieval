@@ -20,22 +20,30 @@ public class Interface {
 	int nbFiles;
 	int fileSelected;
 	ArrayList<Element> elements = new ArrayList<>();
+	ArrayList<String> oldDirectories = new ArrayList<>();
+	int currentStep;
 	
 	BufferedImage baseBuffer;
+	BufferedImage prevBuffer;
+	BufferedImage nextBuffer;
 	BufferedImage fileBuffer;
 	BufferedImage directoryBuffer;
 	
 	public Interface() {	
 		currentDirectoryName = "Dossier1";
+		currentStep = 0;
+		oldDirectories.add( currentDirectoryName );
 		
 		initBuffers();
 		initFilesArray();
-		updateJPanel();
+		initJPanel();
 	}
 	
 	public void initBuffers() {
 		try {
 			baseBuffer = ImageIO.read( new File( getPath( "base.png" )));
+			prevBuffer = ImageIO.read( new File( getPath( "prev.png" )));
+			nextBuffer = ImageIO.read( new File( getPath( "next.png" )));
 			fileBuffer = ImageIO.read( new File( getPath( "file.png" )));
 			directoryBuffer = ImageIO.read( new File( getPath( "directory.png" )));
 			
@@ -52,13 +60,12 @@ public class Interface {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 		return path;
 	}
 	
 	
 	void initFilesArray()
-	{	
+	{			
 		try {
 			FileReader input = new FileReader( getPath( "elements.txt" ) );
 			BufferedReader buffer = new BufferedReader( input );
@@ -99,7 +106,7 @@ public class Interface {
 	}
 	
 	
-	public void updateJPanel() {
+	public void initJPanel() {
 		
 		panel = new JPanel() {		
 			@Override
@@ -108,6 +115,8 @@ public class Interface {
 				super.paintComponent(g);
 				
 				g.drawImage( baseBuffer, 0, 0, this );
+				g.drawImage( prevBuffer, 20, 20, this );
+				g.drawImage( nextBuffer, 46, 20, this );
 				
 				g.setFont(new Font("Calibri", Font.PLAIN, 14));
 				g.drawString( currentDirectoryName, 450, 18);
@@ -139,19 +148,35 @@ public class Interface {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				
+				if( e.getY() >= 20 && e.getY() <= 20+23 )
+				{
+					if( e.getX() >= 20 && e.getX() <= 20+26 && currentStep > 0 )
+					{
+						currentStep--;
+						update( oldDirectories.get( currentStep ) );
+					}
+					else if( e.getX() >= 46 && e.getX() <= 46+26 && currentStep + 1 < oldDirectories.size() )
+					{
+						currentStep++;
+						update( oldDirectories.get( currentStep ) );
+					}
+					return;
+				}
+				
 				for( Element element : elements ) {
 					
 					if( e.getX() >= element.x && e.getX() <= element.x + 65 ) {
 						if( e.getY() >= element.y && e.getY() <= element.y + 65 ) {
 							
 							if( fileSelected == element.id && element.isADirectory )
-							{
-								fileSelected = -1;
-								elements.clear();
-								currentDirectoryName = element.name;
-								initFilesArray();
-							
-								panel.repaint();
+							{								
+								while( oldDirectories.size() > currentStep + 1 )
+									oldDirectories.remove( currentStep + 1 );
+								
+								oldDirectories.add( element.name );
+								currentStep++;
+
+								update( element.name );
 							}
 							else 
 								fileSelected = element.id;
@@ -163,5 +188,15 @@ public class Interface {
 				System.out.println(fileSelected);
 			}
 		});
+	}
+	
+	public void update( String newCurrentDirectoryName )
+	{
+		fileSelected = -1;
+		elements.clear();
+		currentDirectoryName = newCurrentDirectoryName;
+		initFilesArray();
+		
+		panel.repaint();
 	}
 }
