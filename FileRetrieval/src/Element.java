@@ -1,12 +1,11 @@
-
-public class FileOrDirectory {
+public class Element {
 
 	int id;
 	boolean isADirectory;
 	String name;
 	int x, y;
 	
-	public FileOrDirectory( int id, boolean isADirectory, String name )
+	public Element( int id, boolean isADirectory, String name )
 	{
 		this.id = id;
 		this.isADirectory = isADirectory; 
