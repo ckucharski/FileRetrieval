@@ -3,7 +3,10 @@ import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -23,6 +26,8 @@ public class Interface {
 	BufferedImage directoryBuffer;
 	
 	public Interface() {	
+		currentDirectoryName = "Dossier1";
+		
 		initBuffers();
 		initFilesArray();
 		updateJPanel();
@@ -30,9 +35,9 @@ public class Interface {
 	
 	public void initBuffers() {
 		try {
-			baseBuffer = ImageIO.read( new File( getImagePath( "base.png" )));
-			fileBuffer = ImageIO.read( new File( getImagePath( "file.png" )));
-			directoryBuffer = ImageIO.read( new File( getImagePath( "directory.png" )));
+			baseBuffer = ImageIO.read( new File( getPath( "base.png" )));
+			fileBuffer = ImageIO.read( new File( getPath( "file.png" )));
+			directoryBuffer = ImageIO.read( new File( getPath( "directory.png" )));
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -40,7 +45,7 @@ public class Interface {
 	}
 	
 	
-	public String getImagePath( String imageName ) {
+	public String getPath( String imageName ) {
 		String path = null;
 		try {
 			path = new File(".").getCanonicalPath() + "/resources/" + imageName;
@@ -52,18 +57,45 @@ public class Interface {
 	}
 	
 	
-	// Méthode à modifier pour récupérer les données de la base de données  
-	void initFilesArray() {
-		currentDirectoryName = "CurrentDirectoryName";
-		fileSelected = -1;
-		
-		nbFiles = 20; // max : 40
-		
-		for(int i = 0; i < nbFiles; i++ ){	
-			Element file = new Element( i, true, "aaaaaaaaaaaaaa"); // 14 letters max
+	void initFilesArray()
+	{	
+		try {
+			FileReader input = new FileReader( getPath( "elements.txt" ) );
+			BufferedReader buffer = new BufferedReader( input );
+			String line = null;
 			
-			elements.add(file);
+			while( (line = buffer.readLine()) != null )
+			{
+				String[] elements = line.split(" ");
+				
+				if( elements[0].equals(currentDirectoryName) )
+				{
+					nbFiles = elements.length - 1;
+					
+					for( int i = 1; i <= nbFiles; i++ )
+					{
+						Element currentFile;
+						
+						if( elements[i].contains("/") )
+						{	
+							String[] str = elements[i].split("/");
+							
+							currentFile = new Element(i-1, false, str[0], Integer.parseInt(str[1])); 
+							
+						}
+						else
+							currentFile = new Element(i-1, true, elements[i], 0 );
+						
+						this.elements.add(currentFile);
+					}
+				}
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+		
 	}
 	
 	
@@ -101,6 +133,7 @@ public class Interface {
 			}
 		};
 		
+		
 		panel.addMouseListener( new MouseAdapter() {
 			
 			@Override
@@ -110,12 +143,23 @@ public class Interface {
 					
 					if( e.getX() >= element.x && e.getX() <= element.x + 65 ) {
 						if( e.getY() >= element.y && e.getY() <= element.y + 65 ) {
-							fileSelected = element.id;
+							
+							if( fileSelected == element.id && element.isADirectory )
+							{
+								fileSelected = -1;
+								elements.clear();
+								currentDirectoryName = element.name;
+								initFilesArray();
+							
+								panel.repaint();
+							}
+							else 
+								fileSelected = element.id;
+							
 							break;
 						}
 					}
 				}
-				
 				System.out.println(fileSelected);
 			}
 		});
