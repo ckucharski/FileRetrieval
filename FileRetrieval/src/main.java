@@ -1,4 +1,5 @@
 import javax.swing.JFrame;
+import javax.swing.JTextField;
 
 public class main {
 
@@ -12,7 +13,8 @@ public class main {
 		
 		Interface inter = new Interface();
 		window.add( inter.panel );
-
+		
+		window.setResizable(false);
 		window.setVisible(true);
 	}
 }
