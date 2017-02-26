@@ -1,7 +1,7 @@
 Dossier1 File1/20 Dossier2 File2/200 Dossier3 
-Dossier2 File3/10 Dossier4 File7/20 Dossier7
+Dossier2 File3/100 Dossier4 File7/20 Dossier7
 Dossier3 File8/12 Dossier6
-Dossier4 File10/13 Dossier5
+Dossier4 File10/130 Dossier5
 Dossier5 File11/100
 Dossier6 Truc9/110
 Dossier7 File12/11

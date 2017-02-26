@@ -1,5 +1,4 @@
 import javax.swing.JFrame;
-import javax.swing.JTextField;
 
 public class main {
 
@@ -12,9 +11,9 @@ public class main {
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		Interface inter = new Interface();
-		window.add( inter.panel );
+		window.add( inter.panel );	
 		
 		window.setResizable(false);
-		window.setVisible(true);
+		window.setVisible(true); 
 	}
 }

@@ -1,5 +1,7 @@
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -16,12 +18,12 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-public class Interface {
+public class Interface implements KeyListener {
 
 	JPanel panel;
 	String currentDirectoryName;
 	int nbFiles;
-	int fileSelected;
+	Element fileSelected;
 	ArrayList<Element> elements = new ArrayList<>();
 	ArrayList<String> oldDirectories = new ArrayList<>();
 	int currentStep;
@@ -38,27 +40,42 @@ public class Interface {
 	
 	String saveDirectory;
 	ArrayList<Element> saveElements = new ArrayList<>();
-	
 	ArrayList<String> directoryProbable = new ArrayList<>();
+	
+	boolean openHoverMenu;
 	
 	public enum mode{ STANDARD, ICON_HIGHLIGHTS, HOVER_MENUS, SDN };
 	mode currentMode;
 	
 	public Interface() {
-		currentMode = mode.SDN;
-		
-		currentDirectoryName = "Dossier1";
-		currentSearch = "";
-		currentStep = 0;
-		tfSearch = null;
-		oldDirectories.add( currentDirectoryName );
-		
+		currentMode = mode.STANDARD;		
 		initBuffers();
-		initFilesArray(false);
 		initJPanel();
-				
+		panel.addKeyListener(this);
+		init();
+	}
+	
+	public void init() {
+
+		currentDirectoryName = "Dossier1";
+		nbFiles = 0;
+		fileSelected = null;
+		elements.clear();
+		oldDirectories.clear();
+		oldDirectories.add( currentDirectoryName );
+		currentStep = 0;
+		currentSearch = "";
+		saveDirectory = "";
+		saveElements.clear();
+		directoryProbable.clear();
+		openHoverMenu = false;
+		
+		initFilesArray(false);
+		
 		for( int i = 0; i < 3 && currentMode == mode.ICON_HIGHLIGHTS; i++ )
 			checkDirectory(currentDirectoryName);
+		
+		panel.repaint();
 	}
 	
 	public void initBuffers() {
@@ -181,7 +198,7 @@ public class Interface {
 								return;
 							}
 							
-							if( currentMode == mode.ICON_HIGHLIGHTS && Integer.parseInt(str[1]) > 50 && !directoryProbable.contains(directory) )
+							if( ( currentMode == mode.ICON_HIGHLIGHTS || currentMode == mode.HOVER_MENUS ) && Integer.parseInt(str[1]) > 50 && !directoryProbable.contains(directory) )
 							{
 								directoryProbable.add(str[0]);
 								directoryProbable.add(directory);
@@ -225,6 +242,20 @@ public class Interface {
 				
 				g.setFont(new Font("Calibri", Font.PLAIN, 14));
 				g.drawString( currentDirectoryName, 450, 18);
+				
+				String drawMode;
+				
+				if( currentMode == mode.STANDARD )
+					drawMode = "Standard";
+				else if( currentMode == mode.ICON_HIGHLIGHTS )
+					drawMode = "Icon Highlights";
+				else if( currentMode == mode.HOVER_MENUS )
+					drawMode = "Hover Menus";
+				else
+					drawMode = "SDN";
+				
+				g.drawString( drawMode, 10, 15);
+				
 								
 				for( Element element : elements )
 				{
@@ -249,6 +280,23 @@ public class Interface {
 						
 					int textWidth = g.getFontMetrics().stringWidth( element.name );
 					g.drawString( element.name, element.x + 65/2 - textWidth/2, element.y + 80);
+					
+					if( currentMode == mode.HOVER_MENUS && openHoverMenu && element.name.equals(fileSelected.name))
+					{
+						int compteur = 0;
+						g.drawRect(element.x, element.y + 90, 150, 150);
+						
+						for( String str : directoryProbable )
+						{
+							if( compteur < 5 && !str.equals(fileSelected.name) )
+							{
+								g.drawRect(element.x, element.y + 90 + (150/5) * compteur, 150, 30);
+								g.drawString( str, element.x + 5, 20 + element.y + 90 + (150/5) * compteur );
+								compteur++;
+							}
+							
+						}
+					}
 				}
 	
 				boolean searchWasNull = false;
@@ -266,7 +314,7 @@ public class Interface {
 					@Override
 					public void insertUpdate(DocumentEvent e) {
 						// TODO Auto-generated method stub
-						if( currentDirectoryName != "" )
+						if( currentDirectoryName != "" && currentMode != mode.SDN )
 						{
 							saveDirectory = currentDirectoryName;
 							saveElements = elements;
@@ -285,7 +333,6 @@ public class Interface {
 							elements.clear();
 							initFilesArray(true);
 						}
-						
 						panel.repaint();
 						
 					}
@@ -293,6 +340,7 @@ public class Interface {
 					@Override
 					public void removeUpdate(DocumentEvent e) {
 						// TODO Auto-generated method stub
+							
 						currentSearch = tfSearch.getText();
 						
 						if( currentSearch.equals("") )
@@ -310,6 +358,7 @@ public class Interface {
 						}
 						else
 						{
+							
 							if( currentMode == mode.SDN )
 							{
 								directoryProbable.clear();
@@ -345,6 +394,12 @@ public class Interface {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				
+				if( e.getX() >= 810 && e.getX() <= 810 + 280 && e.getY() >= 25 && e.getY() <= 25 + 20 )
+					tfSearch.requestFocus();
+				else
+					panel.requestFocus();
+				
+				
 				if( e.getY() >= 20 && e.getY() <= 20+23 )
 				{
 					if( e.getX() >= 20 && e.getX() <= 20+26 && currentStep > 0 )
@@ -360,6 +415,36 @@ public class Interface {
 					return;
 				}
 				
+				boolean found = false;
+				
+				if( currentMode == mode.HOVER_MENUS && e.getButton() == MouseEvent.BUTTON1 && openHoverMenu )
+				{
+					if( e.getX() >= fileSelected.x && e.getX() <= fileSelected.x + 150 && 
+							e.getY() >= fileSelected.y && e.getY() <= fileSelected.y + 90 + 150 )
+					{
+						int compteur = 0;
+						
+						for( String str : directoryProbable )
+						{
+							if( compteur < 5 && !str.equals(fileSelected.name) )
+							{
+								if( e.getY() >= fileSelected.y + 90 + 30 * compteur && e.getY() <= fileSelected.y + 90 + 30 * compteur + 30 )
+								{	
+									oldDirectories.add(fileSelected.name);
+									directoryProbable.clear();
+									openHoverMenu = false;
+									currentStep++;
+									update(str);
+									break;
+								}
+								compteur++;
+							}
+							
+						}
+					}
+					openHoverMenu = false;
+				}
+				
 				for( Element element : elements ) {
 					
 					element.x = 65 + (element.id%8)*(65+65);
@@ -368,7 +453,7 @@ public class Interface {
 					if( e.getX() >= element.x && e.getX() <= element.x + 65 ) {
 						if( e.getY() >= element.y && e.getY() <= element.y + 65 ) {
 							
-							if( fileSelected == element.id && element.isADirectory )
+							if( fileSelected != null && fileSelected.id == element.id && element.isADirectory && e.getButton() == MouseEvent.BUTTON1 )
 							{
 								while( oldDirectories.size() > currentStep + 1 )
 									oldDirectories.remove( currentStep + 1 );
@@ -385,24 +470,76 @@ public class Interface {
 									
 								update( element.name );
 							}
-							else 
-								fileSelected = element.id;
-							
+							else
+							{
+								fileSelected = new Element(element.id, element.isADirectory, element.name, element.nbOpen);
+								fileSelected.x = element.x;
+								fileSelected.y = element.y;
+								
+								if( currentMode == mode.HOVER_MENUS && e.getButton() == MouseEvent.BUTTON3 && element.isADirectory )
+								{
+									openHoverMenu = true;
+									directoryProbable.clear();
+									
+									for( int i = 0; i < 3; i++ )
+										checkDirectory(element.name);
+									
+									panel.repaint();
+								}
+							}
+								
+							found = true;
 							break;
 						}
 					}
 				}
-				System.out.println(fileSelected);
+				
+
+				if( !found )
+				{
+					fileSelected = null;
+					openHoverMenu = false;
+					panel.repaint();
+				}
 			}
 		});
 	}
 	
 	public void update( String newCurrentDirectoryName )
 	{
-		fileSelected = -1;
+		fileSelected = null;
 		elements.clear();
 		currentDirectoryName = newCurrentDirectoryName;
 		initFilesArray(false);
 		panel.repaint();
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		
+		if( e.getKeyCode() == KeyEvent.VK_ALT_GRAPH )
+		{
+			if( currentMode.ordinal() < 3)
+				currentMode = mode.values()[currentMode.ordinal() + 1];
+			else
+				currentMode = mode.values()[0];
+			
+			init();
+		}
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		
+		// TODO Auto-generated method stub
+		
 	}
 }
