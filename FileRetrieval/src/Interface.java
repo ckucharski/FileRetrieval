@@ -57,7 +57,7 @@ public class Interface implements KeyListener {
 	
 	public void init() {
 
-		currentDirectoryName = "Dossier1";
+		currentDirectoryName = "Home";
 		nbFiles = 0;
 		fileSelected = null;
 		elements.clear();
