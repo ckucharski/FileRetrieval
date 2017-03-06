@@ -1,7 +1,7 @@
 Home android-studio/80 Images Vidéos Musiques Documents Cours Projets
 Images background/5 Animaux Photos Screenshots img/4
 Animaux lapin/10 chat_mignon/10 chien/10 écureuil/60 renard/110
-Photos 161225001/2 161225002/2 161225003/60 161225004/3 161231001/4 161231002/1 161231003/9 161231004/1 161231005/70 161231006/1 161231007/2 161231008/3 161231009/1 161231010/13
+Photos 161225001/2 161225002/2 161225003/60 ArcDeTriomphe/60
 Screenshots 170227_212809/2
 Vidéos video/10 nyancat/70
 Musiques lostwood/60 chocobo/100 
@@ -9,7 +9,7 @@ Documents Important mozilla/200
 Important cv/100 lettreMotivation/100
 Cours IHM TempsReel Android GestionDeProjet
 IHM ihm_c1/12 ihm_c2/3
-TempsReel tr_150929/10 tr_151006/10 tr_151013/10 tr_151020/50 tr_151110/10 tr_151124/10 tr_151208/10
+TempsReel tr_150929/10 tr_151006/50 tr_151013/10
 Android android1/3 android2/4 android3/2 android4/3 android5/4 android6/10
 GestionDeProjet gestionBases/10 methodeAgile/50
 Projets FileRetrieval Coloris Space RecipeBook
